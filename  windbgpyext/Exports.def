@@ -1,0 +1,5 @@
+LIBRARY   WiPE
+EXPORTS
+	WinDbgExtensionDllInit
+	ExtensionApiVersion
+	execpy
