@@ -279,3 +279,38 @@ PyObject * wipe_SetContext(PyObject * self, PyObject * args)
 		return Py_True;
 	}
 }
+
+PyObject * wipe_StackTrace(PyObject * self, PyObject * args)
+{
+	ULONG ulFramePointer;
+	ULONG ulStackPointer;
+	ULONG ulProgramCounter;
+	ULONG ulFrames;
+	EXTSTACKTRACE taFrames[1024];
+	PyObject * ptFrameList = NULL;
+	ULONG i;
+
+	if (!PyArg_ParseTuple(args, "kkk", &ulFramePointer, &ulStackPointer, &ulProgramCounter))
+	{
+		return NULL;
+	}
+
+	ptFrameList = Py_BuildValue("[]");
+
+	ulFrames = StackTrace(ulFramePointer, ulStackPointer, ulProgramCounter, taFrames, 1024);
+	
+	for (i = 0; i < ulFrames; i++)
+	{
+		PyList_Append(ptFrameList, Py_BuildValue("(kkkO)", 
+												 taFrames[i].FramePointer,
+												 taFrames[i].ProgramCounter,
+												 taFrames[i].ReturnAddress,
+												 Py_BuildValue("(kkkk)", 
+															   taFrames[i].Args[0],
+															   taFrames[i].Args[1],
+															   taFrames[i].Args[2],
+															   taFrames[i].Args[3])));
+	}
+
+	return ptFrameList;
+}

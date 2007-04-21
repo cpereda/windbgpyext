@@ -16,3 +16,4 @@ PyObject * wipe_WritePhysical(PyObject * self, PyObject * args);
 PyObject * wipe_GetSymbol(PyObject * self, PyObject * args);
 PyObject * wipe_GetContext(PyObject * self, PyObject * args);
 PyObject * wipe_SetContext(PyObject * self, PyObject * args);
+PyObject * wipe_StackTrace(PyObject * self, PyObject * args);
