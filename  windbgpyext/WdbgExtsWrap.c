@@ -4,9 +4,6 @@
 /*** definitions *************************************************/
 #define SIGN_EXTEND( x ) (ULONG64)(LONG)( x )
 
-typedef ULONG(*PFN_MEMORYREADFUNC)(ULONG, PVOID, ULONG, PULONG);
-typedef ULONG(*PFN_MEMORYWRITEFUNC)(ULONG, PVOID, ULONG, PULONG);
-
 /*** Implementation **********************************************/
 PyObject * wipe_dprintf(PyObject * self, PyObject * args)
 {
@@ -46,7 +43,8 @@ PyObject * wipe_Disasm(PyObject *self, PyObject *args)
 	}
 
 	//FIXME
-    if (Disasm(pulOffset, caBuf, ulShowEffectiveAddress))
+	caBuf[0] = "\x4d\x00";
+    if (Disasm(&caBuf, caBuf, ulShowEffectiveAddress))
 	{
 		return Py_BuildValue("sk", caBuf);
 	}
@@ -288,6 +286,7 @@ PyObject * wipe_StackTrace(PyObject * self, PyObject * args)
 	ULONG ulFrames;
 	EXTSTACKTRACE taFrames[1024];
 	PyObject * ptFrameList = NULL;
+	PyObject * ptFrame = NULL;
 	ULONG i;
 
 	if (!PyArg_ParseTuple(args, "kkk", &ulFramePointer, &ulStackPointer, &ulProgramCounter))
@@ -301,15 +300,18 @@ PyObject * wipe_StackTrace(PyObject * self, PyObject * args)
 	
 	for (i = 0; i < ulFrames; i++)
 	{
-		PyList_Append(ptFrameList, Py_BuildValue("(kkkO)", 
-												 taFrames[i].FramePointer,
-												 taFrames[i].ProgramCounter,
-												 taFrames[i].ReturnAddress,
-												 Py_BuildValue("(kkkk)", 
-															   taFrames[i].Args[0],
-															   taFrames[i].Args[1],
-															   taFrames[i].Args[2],
-															   taFrames[i].Args[3])));
+		ptFrame = Py_BuildValue("(kkkN)", 
+								taFrames[i].FramePointer,
+								taFrames[i].ProgramCounter,
+								taFrames[i].ReturnAddress,
+								Py_BuildValue("(kkkk)", 
+											  taFrames[i].Args[0],
+											  taFrames[i].Args[1],
+											  taFrames[i].Args[2],
+											  taFrames[i].Args[3]));
+		PyList_Append(ptFrameList, ptFrame);
+		// PyList_Append adds a ref
+		Py_DECREF(ptFrame);
 	}
 
 	return ptFrameList;
